@@ -1,7 +1,7 @@
 import shutil
 import subprocess
 
-REQUIRED_TOOLS = ["airmon-ng", "airodump-ng", "aircrack-ng", "reaver", "nmap"]
+REQUIRED_TOOLS = REQUIRED_TOOLS = ["airmon-ng", "airodump-ng", "aircrack-ng", "reaver", "nmap", "bully"]
 
 def check_tools_installed():
     """Check if all required tools are installed."""
@@ -12,6 +12,7 @@ def check_tools_installed():
     return "All required tools are installed."
 
 def run_command(command):
+    logging.info(f'Running command: {command}')
     """Run a system command and return its output or an error message."""
     try:
         result = subprocess.run(

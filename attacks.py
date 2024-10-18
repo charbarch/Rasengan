@@ -2,34 +2,34 @@ from tools import run_command
 
 def capture_handshake():
     """Capture WPA/WPA2 handshake."""
-    bssid = input("Enter the target BSSID: ")
-    channel = input("Enter the channel of the network: ")
-    interface = input("Enter the interface to use: ")
+    bssid = bssid
+    channel = channel
+    interface = interface
     
     try:
         return run_command(f"sudo airodump-ng --bssid {bssid} --channel {channel} -w capture {interface}mon")
     except Exception as e:
-        print(f"Error capturing handshake: {e}")
+        logging.error("Error capturing handshake: {e}")
 
 def crack_wpa_handshake():
     """Crack WPA/WPA2 handshake using a wordlist."""
     wordlist = input("Enter the path to the wordlist: ")
-    bssid = input("Enter the target BSSID: ")
+    bssid = bssid
     
     try:
         return run_command(f"sudo aircrack-ng -w {wordlist} -b {bssid} capture-01.cap")
     except Exception as e:
-        print(f"Error cracking handshake: {e}")
+        logging.error("Error cracking handshake: {e}")
 
 def wps_attack():
     """Perform WPS attack on a target BSSID."""
-    bssid = input("Enter the target BSSID: ")
-    interface = input("Enter the interface to use: ")
+    bssid = bssid
+    interface = interface
     
     try:
         return run_command(f"sudo reaver -i {interface}mon -b {bssid} -vv")
     except Exception as e:
-        print(f"Error performing WPS attack: {e}")
+        logging.error("Error performing WPS attack: {e}")
 
 def port_scan():
     """Perform a port scan on an IP address."""
@@ -39,7 +39,7 @@ def port_scan():
     try:
         return run_command(f"sudo nmap -Pn -sS -p- {additional_options} {ip}")
     except Exception as e:
-        print(f"Error performing port scan: {e}")
+        logging.error("Error performing port scan: {e}")
 
 def main():
     print("Choose an action:")
@@ -60,3 +60,6 @@ def main():
         port_scan()
     else:
         print("Invalid choice. Please enter a number between 1 and 4.")
+
+if __name__ == "__main__":
+    main()
