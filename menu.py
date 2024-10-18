@@ -1,5 +1,6 @@
 import curses
 import logging
+from attacks import capture_handshake, crack_wpa_handshake, wps_attack, port_scan
 
 logging.basicConfig(level=logging.INFO)
 
@@ -14,7 +15,6 @@ def setup_colors():
 def draw_menu(stdscr):
     setup_colors()
     k = 0
-    cursor_x = 0
     cursor_y = 0
 
     while k != ord('6'):
@@ -62,26 +62,36 @@ def draw_menu(stdscr):
         elif k == curses.KEY_DOWN and cursor_y < len(menu_options) - 1:
             cursor_y += 1
         elif k == ord('\n'):
-            logging.info(f"Selected option {cursor_y + 1}")
-            if cursor_y == 0:
-                # Scan for available Wi-Fi networks
-                stdscr.clear()
-                stdscr.addstr(0, 0, "Scanning for available networks...")
-                stdscr.refresh()
-                logging.info("Initiating network scan...")
-                # Placeholder for scanning functionality
-            elif cursor_y == 1:
+            if cursor_y == 1:
                 # Capture WPA/WPA2 handshake
-                logging.info("Capturing WPA/WPA2 handshake...")
+                bssid = "00:11:22:33:44:55"  # Example BSSID
+                channel = "6"  # Example channel
+                interface = "wlan0"  # Example interface
+                capture_handshake(bssid, channel, interface)
             elif cursor_y == 2:
                 # Crack WPA/WPA2 handshake
-                logging.info("Cracking WPA/WPA2 handshake...")
+                wordlist = "wordlist.txt"  # Example wordlist path
+                bssid = "00:11:22:33:44:55"  # Example BSSID
+                crack_wpa_handshake(wordlist, bssid)
             elif cursor_y == 3:
                 # Perform WPS attack
-                logging.info("Performing WPS attack...")
+                bssid = "00:11:22:33:44:55"  # Example BSSID
+                interface = "wlan0"  # Example interface
+                wps_attack(bssid, interface)
             elif cursor_y == 4:
                 # Perform port scan
-                logging.info("Performing port scan...")
+                target_ip = "192.168.1.1"  # Example target IP
+                port_scan(target_ip)
             elif cursor_y == 5:
                 # Exit the program
                 break
+
+        # Exit the program if '6' is pressed
+        if k == ord('6'):
+            break
+
+def main():
+    curses.wrapper(draw_menu)
+
+if __name__ == "__main__":
+    main()
