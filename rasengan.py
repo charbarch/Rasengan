@@ -1,4 +1,3 @@
-
 import curses
 import curses.textpad
 import argparse
@@ -57,8 +56,7 @@ def display_network_list(stdscr, networks):
             selected -= 1
         elif key == curses.KEY_DOWN and selected < len(networks) - 1:
             selected += 1
-        elif key == ord('
-'):  # Enter key
+        elif key == ord('/n'):  # Enter key
             return networks[selected]
         elif key == 27:  # Escape key to cancel
             return None
@@ -159,7 +157,7 @@ def main(stdscr):
             stdscr.getch()
 
         elif choice == ord('6'):  # Exit
-            break
+            exit()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Rasengan: Wi-Fi Security Checker")
