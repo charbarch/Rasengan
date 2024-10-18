@@ -1,6 +1,7 @@
 
 import curses
 import argparse
+import sys
 from tools import check_tools_installed, enable_monitor_mode, disable_monitor_mode
 from attacks import capture_handshake, crack_wpa_handshake, wps_attack, port_scan
 from menu import draw_menu
