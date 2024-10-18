@@ -8,7 +8,7 @@ from menu import draw_menu
 
 def scan_networks(interface):
     """Scan for nearby Wi-Fi networks."""
-    output = run_command(f"sudo airodump-ng {interface}mon")
+    output = sys.run_command(f"sudo airodump-ng {interface}mon")
     # You can add logic here to parse the output of airodump-ng and display it nicely.
     return output
 
