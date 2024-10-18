@@ -8,7 +8,7 @@ Rasengan is a CLI tool designed for automating Wi-Fi security checks, such as ne
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/chararch/rasengan.git
+   git clone https://github.com/charbarch/rasengan.git
    ```
 
 2. Navigate into the project directory:
