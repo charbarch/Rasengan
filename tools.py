@@ -1,7 +1,8 @@
 import shutil
 import subprocess
+import logging
 
-REQUIRED_TOOLS = REQUIRED_TOOLS = ["airmon-ng", "airodump-ng", "aircrack-ng", "reaver", "nmap", "bully"]
+REQUIRED_TOOLS = ["airmon-ng", "airodump-ng", "aircrack-ng", "reaver", "nmap", "bully"]
 
 def check_tools_installed():
     """Check if all required tools are installed."""
@@ -11,31 +12,40 @@ def check_tools_installed():
         return f"The following tools are missing: {', '.join(missing_tools)}. Please install them."
     return "All required tools are installed."
 
-def run_command(command):
-    logging.info(f'Running command: {command}')
-    """Run a system command and return its output or an error message."""
-    try:
-        result = subprocess.run(
-            command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-        )
-        return result.stdout.strip()
-    except subprocess.CalledProcessError as e:
-        return f"Error executing command '{command}': {e.stderr.strip()}"
-
 def enable_monitor_mode(interface):
-    """Enable monitor mode on a given network interface."""
-    return run_command(f"sudo airmon-ng start {interface}")
+    """Enable monitor mode on the given interface."""
+    logging.info(f"Enabling monitor mode on interface: {interface}")
+    result = run_command(f"sudo airmon-ng start {interface}")
+    logging.info(result)
+    return f"{interface}mon"
 
 def disable_monitor_mode(interface):
-    """Disable monitor mode on a given network interface."""
-    return run_command(f"sudo airmon-ng stop {interface}mon")
+    """Disable monitor mode on the given interface."""
+    logging.info(f"Disabling monitor mode on interface: {interface}")
+    result = run_command(f"sudo airmon-ng stop {interface}")
+    logging.info(result)
 
-if __name__ == "__main__":
-    # Example usage
-    tools_status = check_tools_installed()
-    print(tools_status)
-    
-    if "All required tools are installed" in tools_status:
-        interface = "wlan0"  # Replace with your actual interface name
-        print(enable_monitor_mode(interface))
-        print(disable_monitor_mode(interface))
+def run_command(command):
+    try:
+        logging.info(f"Running command: {command}")
+        result = subprocess.run(
+            command,
+            shell=True,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        return result.stdout.decode('utf-8')
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user.")
+        return "Operation cancelled"
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Command '{command}' failed with error: {e.stderr.decode('utf-8')}")
+        return f"Command failed: {e.stderr.decode('utf-8')}"
+
+def scan_networks(interface):
+    """Scan for available networks using airodump-ng."""
+    logging.info(f"Scanning networks on interface: {interface}")
+    result = run_command(f"sudo airodump-ng {interface}mon")
+    logging.info(result)
+    return result
