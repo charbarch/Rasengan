@@ -1,4 +1,7 @@
 import curses
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 def setup_colors():
     # Initialize color pairs
@@ -32,26 +35,53 @@ def draw_menu(stdscr):
 
         # Draw menu options
         menu_options = [
-            "[1] Scan for Networks",
-            "[2] Capture WPA Handshake",
-            "[3] Crack WPA Password",
-            "[4] WPS Attack",
-            "[5] Port Scan",
-            "[6] Exit"
+            "1 - Scan for available Wi-Fi networks",
+            "2 - Capture WPA/WPA2 handshake",
+            "3 - Crack WPA/WPA2 handshake",
+            "4 - Perform WPS attack",
+            "5 - Perform port scan",
+            "6 - Exit"
         ]
 
         for idx, option in enumerate(menu_options):
             x = 2
-            y = menu_start_y + idx
-            stdscr.addstr(y, x, option, curses.color_pair(2))
+            y = menu_start_y + idx * 2
+            if cursor_y == idx:
+                stdscr.addstr(y, x, option, curses.A_REVERSE | curses.color_pair(2))
+            else:
+                stdscr.addstr(y, x, option, curses.color_pair(2))
 
-        # Draw footer
-        footer_text = "Created by: Chararch | GitHub: charbarch (https://github.com/charbarch)"
-        footer_x = (width // 2) - (len(footer_text) // 2)
-        stdscr.addstr(height - 2, footer_x, footer_text, curses.A_DIM | curses.color_pair(4))
-
-        # Refresh the screen
+        # Refresh screen
         stdscr.refresh()
 
         # Wait for user input
         k = stdscr.getch()
+
+        if k == curses.KEY_UP and cursor_y > 0:
+            cursor_y -= 1
+        elif k == curses.KEY_DOWN and cursor_y < len(menu_options) - 1:
+            cursor_y += 1
+        elif k == ord('\n'):
+            logging.info(f"Selected option {cursor_y + 1}")
+            if cursor_y == 0:
+                # Scan for available Wi-Fi networks
+                stdscr.clear()
+                stdscr.addstr(0, 0, "Scanning for available networks...")
+                stdscr.refresh()
+                logging.info("Initiating network scan...")
+                # Placeholder for scanning functionality
+            elif cursor_y == 1:
+                # Capture WPA/WPA2 handshake
+                logging.info("Capturing WPA/WPA2 handshake...")
+            elif cursor_y == 2:
+                # Crack WPA/WPA2 handshake
+                logging.info("Cracking WPA/WPA2 handshake...")
+            elif cursor_y == 3:
+                # Perform WPS attack
+                logging.info("Performing WPS attack...")
+            elif cursor_y == 4:
+                # Perform port scan
+                logging.info("Performing port scan...")
+            elif cursor_y == 5:
+                # Exit the program
+                break

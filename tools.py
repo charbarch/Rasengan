@@ -49,3 +49,15 @@ def scan_networks(interface):
     result = run_command(f"sudo airodump-ng {interface}mon")
     logging.info(result)
     return result
+
+def find_wireless_interface():
+    """Find the wireless interface (e.g., wlan0)."""
+    logging.info("Finding wireless interface")
+    output = run_command("iwconfig")
+    for line in output.splitlines():
+        if "IEEE 802.11" in line:
+            interface = line.split()[0]
+            logging.info(f"Found wireless interface: {interface}")
+            return interface
+    logging.error("No wireless interface found.")
+    return None
