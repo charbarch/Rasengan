@@ -1,4 +1,5 @@
 from tools import run_command
+import logging
 
 def capture_handshake():
     """Capture WPA/WPA2 handshake."""
@@ -60,6 +61,3 @@ def main():
         port_scan()
     else:
         print("Invalid choice. Please enter a number between 1 and 4.")
-
-if __name__ == "__main__":
-    main()
