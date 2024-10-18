@@ -55,5 +55,3 @@ def draw_menu(stdscr):
 
         # Wait for user input
         k = stdscr.getch()
-
-curses.wrapper(draw_menu)
