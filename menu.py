@@ -6,32 +6,54 @@ def setup_colors():
     curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)  # Header
     curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)  # Menu options
     curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)  # Highlight active option
-    curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_BLUE)  # Footer
+    curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_BLACK)  # Footer
 
 def draw_menu(stdscr):
     setup_colors()
-    stdscr.clear()
-    stdscr.border(0)
-    
-    # Use color pair 1 for the header
-    stdscr.addstr(1, 2, "Rasengan: Wi-Fi Security Checker", curses.A_BOLD | curses.color_pair(1))
-    
-    # Use color pair 2 for the options
-    stdscr.addstr(3, 2, "[1] Scan for Networks", curses.color_pair(2))
-    stdscr.addstr(4, 2, "[2] Capture WPA Handshake", curses.color_pair(2))
-    stdscr.addstr(5, 2, "[3] Crack WPA Password", curses.color_pair(2))
-    stdscr.addstr(6, 2, "[4] WPS Attack", curses.color_pair(2))
-    stdscr.addstr(7, 2, "[5] Port Scan", curses.color_pair(2))
-    stdscr.addstr(8, 2, "[6] Exit", curses.color_pair(2))
-    
-    # Use default colors for the prompt
-    stdscr.addstr(10, 2, "Choose an option: ")
-    
-    # Use color pair 4 for the footer
-    stdscr.addstr(28, 60, "Created by: Chararch | GitHub: https://github.com/charbarch", curses.A_DIM | curses.color_pair(4))
+    k = 0
+    cursor_x = 0
+    cursor_y = 0
 
-    stdscr.refresh()
-    stdscr.getch()
+    while k != ord('6'):
+        # Get screen height and width
+        height, width = stdscr.getmaxyx()
 
-# Run the program
+        # Clear and refresh the screen for a blank canvas
+        stdscr.clear()
+        stdscr.border(0)
+
+        # Calculate centered positions
+        title = "Rasengan: Wi-Fi Security Checker"
+        title_x = (width // 2) - (len(title) // 2)
+        menu_start_y = 3
+
+        # Draw header
+        stdscr.addstr(1, title_x, title, curses.A_BOLD | curses.color_pair(1))
+
+        # Draw menu options
+        menu_options = [
+            "[1] Scan for Networks",
+            "[2] Capture WPA Handshake",
+            "[3] Crack WPA Password",
+            "[4] WPS Attack",
+            "[5] Port Scan",
+            "[6] Exit"
+        ]
+
+        for idx, option in enumerate(menu_options):
+            x = 2
+            y = menu_start_y + idx
+            stdscr.addstr(y, x, option, curses.color_pair(2))
+
+        # Draw footer
+        footer_text = "Created by: Chararch | GitHub: charbarch (https://github.com/charbarch)"
+        footer_x = (width // 2) - (len(footer_text) // 2)
+        stdscr.addstr(height - 2, footer_x, footer_text, curses.A_DIM | curses.color_pair(4))
+
+        # Refresh the screen
+        stdscr.refresh()
+
+        # Wait for user input
+        k = stdscr.getch()
+
 curses.wrapper(draw_menu)

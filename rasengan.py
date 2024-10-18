@@ -2,13 +2,32 @@ import curses
 import curses.textpad
 import argparse
 import sys
+import re
+import shutil
+import subprocess
 from tools import check_tools_installed, enable_monitor_mode, disable_monitor_mode, run_command
 from attacks import capture_handshake, crack_wpa_handshake, wps_attack, port_scan
 from menu import draw_menu
-import re
+
+def check_dependencies():
+    """
+    Check if the required tools are installed on the system.
+    """
+    required_tools = ["airmon-ng", "airodump-ng", "aireplay-ng", "reaver"]
+    missing_tools = []
+    
+    for tool in required_tools:
+        if not shutil.which(tool):
+            missing_tools.append(tool)
+    
+    if missing_tools:
+        return f"Missing tools: {', '.join(missing_tools)}. Please install the missing tools and try again."
+    return ""
 
 def find_wireless_interface():
-    # Find the wireless interface (e.g., wlan0).
+    """
+    Find the wireless interface (e.g., wlan0).
+    """
     output = run_command("iwconfig")
     for line in output.splitlines():
         if "IEEE 802.11" in line:
@@ -16,13 +35,13 @@ def find_wireless_interface():
     return None
 
 def scan_networks(interface):
-    # Scan for nearby Wi-Fi networks and parse the results.
+    """
+    Scan for nearby Wi-Fi networks and parse the results.
+    """
     output = run_command(f"sudo airodump-ng {interface}mon")
-
-    # Parse the output for network details (BSSID, Channel, ESSID)
     networks = []
     network_re = re.compile(r'([0-9A-F:]{17})\s+\d+\s+(\d+)\s+-\d+\s+-\d+\s+\d+\s+\S+\s+(.+)')
-    
+
     for line in output.splitlines():
         match = network_re.search(line)
         if match:
@@ -32,14 +51,15 @@ def scan_networks(interface):
     return networks
 
 def display_network_list(stdscr, networks):
-    # Display a list of networks and allow the user to select one.
+    """
+    Display a list of detected networks and allow the user to select one.
+    """
     selected = 0
     while True:
         stdscr.clear()
         stdscr.border(0)
         stdscr.addstr(1, 2, "Select a Network", curses.A_BOLD)
         
-        # Display networks
         for i, network in enumerate(networks):
             bssid, channel, essid = network
             if i == selected:
@@ -50,13 +70,13 @@ def display_network_list(stdscr, networks):
         stdscr.refresh()
 
         key = stdscr.getch()
-
+        
         # Navigate with arrow keys
         if key == curses.KEY_UP and selected > 0:
             selected -= 1
         elif key == curses.KEY_DOWN and selected < len(networks) - 1:
             selected += 1
-        elif key == ord('/n'):  # Enter key
+        elif key == ord('\n'):  # Enter key
             return networks[selected]
         elif key == 27:  # Escape key to cancel
             return None
@@ -65,7 +85,13 @@ def main(stdscr):
     curses.curs_set(0)
     stdscr.nodelay(0)
     
-    # Automatically detect the wireless interface
+    # Check dependencies before starting
+    dependencies_status = check_dependencies()
+    if dependencies_status:
+        stdscr.addstr(10, 2, dependencies_status)
+        stdscr.getch()
+        sys.exit(1)
+
     interface = find_wireless_interface()
     if not interface:
         stdscr.addstr(10, 2, "No wireless interface found. Please check your setup.")
@@ -78,33 +104,17 @@ def main(stdscr):
         stdscr.getch()
         sys.exit(1)
 
-    # Enable mouse events and key events
+    # Enable mouse and keyboard interaction
     curses.mousemask(curses.ALL_MOUSE_EVENTS)
     stdscr.keypad(True)
+
+    selected_network = None
 
     while True:
         draw_menu(stdscr)
         choice = stdscr.getch()
 
-        if choice == curses.KEY_MOUSE:
-            try:
-                _, mx, my, _, _ = curses.getmouse()  # Get mouse position
-                if my == 3:  # Clicked on "Scan for Networks"
-                    choice = ord('1')
-                elif my == 4:  # Clicked on "Capture WPA Handshake"
-                    choice = ord('2')
-                elif my == 5:  # Clicked on "Crack WPA Password"
-                    choice = ord('3')
-                elif my == 6:  # Clicked on "WPS Attack"
-                    choice = ord('4')
-                elif my == 7:  # Clicked on "Port Scan"
-                    choice = ord('5')
-                elif my == 8:  # Clicked on "Exit"
-                    choice = ord('6')
-            except curses.error:
-                pass
-
-        # Handle keyboard inputs
+        # Handle menu actions
         if choice == ord('1'):  # Scan for Networks
             enable_monitor_mode(interface)
             stdscr.addstr(10, 2, "Scanning for networks...")
@@ -115,38 +125,49 @@ def main(stdscr):
 
             if networks:
                 selected_network = display_network_list(stdscr, networks)
-                stdscr.addstr(12, 2, f"Selected Network: {selected_network[2]} (BSSID: {selected_network[0]})")
+                if selected_network:
+                    stdscr.addstr(12, 2, f"Selected Network: {selected_network[2]} (BSSID: {selected_network[0]})")
+                else:
+                    stdscr.addstr(12, 2, "No network selected.")
             else:
                 stdscr.addstr(12, 2, "No networks found.")
             stdscr.getch()
 
         elif choice == ord('2'):  # Capture WPA Handshake
-            # Automatically proceed with selected network
-            stdscr.addstr(10, 2, f"Capturing handshake for {selected_network[2]} (BSSID: {selected_network[0]})")
-            curses.echo()
-            bssid = selected_network[0]
-            channel = selected_network[1]
-            enable_monitor_mode(interface)
-            output = capture_handshake(bssid, channel, interface)
-            disable_monitor_mode(interface)
-            stdscr.addstr(15, 2, output)
+            if selected_network:
+                stdscr.addstr(10, 2, f"Capturing handshake for {selected_network[2]} (BSSID: {selected_network[0]})")
+                curses.echo()
+                bssid = selected_network[0]
+                channel = selected_network[1]
+                enable_monitor_mode(interface)
+                output = capture_handshake(bssid, channel, interface)
+                disable_monitor_mode(interface)
+                stdscr.addstr(15, 2, output)
+            else:
+                stdscr.addstr(10, 2, "No network selected. Please scan and select a network first.")
             stdscr.getch()
 
         elif choice == ord('3'):  # Crack WPA Password
-            stdscr.addstr(10, 2, "Enter path to wordlist: ")
-            wordlist = stdscr.getstr(11, 2, 50).decode()
-            bssid = selected_network[0]
-            output = crack_wpa_handshake(wordlist, bssid)
-            stdscr.addstr(15, 2, output)
+            if selected_network:
+                stdscr.addstr(10, 2, "Enter path to wordlist: ")
+                wordlist = stdscr.getstr(11, 2, 50).decode()
+                bssid = selected_network[0]
+                output = crack_wpa_handshake(wordlist, bssid)
+                stdscr.addstr(15, 2, output)
+            else:
+                stdscr.addstr(10, 2, "No network selected. Please scan and select a network first.")
             stdscr.getch()
 
         elif choice == ord('4'):  # WPS Attack
-            stdscr.addstr(10, 2, f"Running WPS attack on {selected_network[2]} (BSSID: {selected_network[0]})")
-            bssid = selected_network[0]
-            enable_monitor_mode(interface)
-            output = wps_attack(bssid, interface)
-            disable_monitor_mode(interface)
-            stdscr.addstr(15, 2, output)
+            if selected_network:
+                stdscr.addstr(10, 2, f"Running WPS attack on {selected_network[2]} (BSSID: {selected_network[0]})")
+                bssid = selected_network[0]
+                enable_monitor_mode(interface)
+                output = wps_attack(bssid, interface)
+                disable_monitor_mode(interface)
+                stdscr.addstr(15, 2, output)
+            else:
+                stdscr.addstr(10, 2, "No network selected. Please scan and select a network first.")
             stdscr.getch()
 
         elif choice == ord('5'):  # Port Scan
