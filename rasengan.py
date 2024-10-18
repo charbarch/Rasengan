@@ -1,14 +1,13 @@
-
 import curses
 import argparse
 import sys
-from tools import check_tools_installed, enable_monitor_mode, disable_monitor_mode
+from tools import check_tools_installed, enable_monitor_mode, disable_monitor_mode, run_command  # Import run_command
 from attacks import capture_handshake, crack_wpa_handshake, wps_attack, port_scan
 from menu import draw_menu
 
 def scan_networks(interface):
     """Scan for nearby Wi-Fi networks."""
-    output = sys.run_command(f"sudo airodump-ng {interface}mon")
+    output = run_command(f"sudo airodump-ng {interface}mon")  # Use run_command from tools.py
     # You can add logic here to parse the output of airodump-ng and display it nicely.
     return output
 
@@ -79,7 +78,6 @@ def main(stdscr):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Rasengan: Wi-Fi Security Checker")
-    parser.add_argument("--help", action="help", help="Show this help message and exit")
     
     args = parser.parse_args()
 
